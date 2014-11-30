@@ -1,16 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Version;Build;NuGet" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BE83BE94-A462-4E22-80B0-FF823C6B30BB}</ProjectGuid>
+    <AssemblyGuid>64dfd123-33c8-4dc0-b9dd-127075a6a0c9</AssemblyGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Knapcode.KitchenSink</RootNamespace>
-    <AssemblyName>Knapcode.KitchenSink</AssemblyName>
+    <AssemblyName>$(RootNamespace)</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <VersionMajor>1</VersionMajor>
+    <VersionMinor>0</VersionMinor>
+    <VersionBuild>0</VersionBuild>
+    <VersionRevision>0</VersionRevision>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -89,14 +96,38 @@
     <Compile Include="Support\Guard.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Knapcode.KitchenSink.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
-  <Target Name="AfterBuild">
+
+  <!-- enable MSBuild.Community.Tasks -->
+  <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\.build</MSBuildCommunityTasksPath>
+    <NuGetPath>$(MSBuildProjectDirectory)\..\.nuget</NuGetPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets" />
+  <Target Name="Version">
+    <GitVersion LocalPath="$(MSBuildProjectDirectory)\..">
+      <Output TaskParameter="CommitHash" PropertyName="Commit" />
+    </GitVersion>
+    <GitPendingChanges LocalPath="$(MSBuildProjectDirectory)\..">
+      <Output TaskParameter="HasPendingChanges" PropertyName="HasPendingChanges" />
+    </GitPendingChanges>
+    <PropertyGroup>
+      <CommitSuffix Condition="'$(HasPendingChanges)' == 'true'">-dirty</CommitSuffix>
+    </PropertyGroup>
+    <AssemblyInfo CodeLanguage="CS" OutputFile="Properties\AssemblyInfo.cs" AssemblyTitle="$(RootNamespace)" ComVisible="false" CLSCompliant="false" Guid="$(AssemblyGuid)" AssemblyInformationalVersion="$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)-$(Commit)$(CommitSuffix)" AssemblyVersion="$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)" AssemblyFileVersion="$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)" />
   </Target>
-  -->
+  <Target Name="NuGet">
+    <NuGetPack ToolPath="$(NuGetPath)" File="$(RootNamespace).nuspec" Symbols="false" BasePath="$(OutputPath)" OutputDirectory="$(OutputPath)" Version="$(VersionMajor).$(VersionMinor).$(VersionBuild)" Properties="id=$(RootNamespace)" />
+  </Target>
 </Project>
