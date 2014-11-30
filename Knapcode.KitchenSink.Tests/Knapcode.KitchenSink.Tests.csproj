@@ -96,6 +96,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Extensions\HttpRequestMessageExtensionsTests.cs" />
     <Compile Include="Http\Handlers\RedirectingHandlerTests.cs" />
     <Compile Include="Http\Handlers\AzureHttpMessageStoreTests.cs" />
     <Compile Include="Http\Handlers\DecompressingHandlerTests.cs" />

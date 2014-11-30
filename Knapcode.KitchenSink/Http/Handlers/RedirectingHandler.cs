@@ -14,9 +14,9 @@ namespace Knapcode.KitchenSink.Http.Handlers
     public class RedirectingHandler : DelegatingHandler
     {
         /// <summary>
-        /// The property key used to access the list of responses.
+        /// The property key used to access the list of responses in <see cref="HttpRequestMessage.Properties"/>.
         /// </summary>
-        public const string HistoryPropertyKey = "Knapcode.Http.Handlers.RedirectingHandler.ResponseHistory";
+        public const string RedirectHistoryKey = "Knapcode.KitchenSink.Http.Handlers.RedirectingHandler.RedirectHistory";
 
         private static readonly ISet<HttpStatusCode> RedirectStatusCodes = new HashSet<HttpStatusCode>(new[]
         {
@@ -43,7 +43,7 @@ namespace Knapcode.KitchenSink.Http.Handlers
             MaxAutomaticRedirections = 50;
             DisableInnerAutoRedirect = true;
             DownloadContentOnRedirect = true;
-            KeepResponseHistory = true;
+            KeepRedirectHistory = true;
         }
 
         /// <summary>
@@ -67,9 +67,9 @@ namespace Knapcode.KitchenSink.Http.Handlers
         public bool DisableInnerAutoRedirect { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the response history should be saved to the <see cref="HttpResponseMessage.RequestMessage"/> properties with the key of <see cref="HistoryPropertyKey"/>.
+        /// Gets or sets a value indicating whether the response history should be saved to the <see cref="HttpResponseMessage.RequestMessage"/> properties with the key of <see cref="RedirectHistoryKey"/>.
         /// </summary>
-        public bool KeepResponseHistory { get; set; }
+        public bool KeepRedirectHistory { get; set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -176,7 +176,7 @@ namespace Knapcode.KitchenSink.Http.Handlers
                 }
 
                 // keep a history all responses
-                if (KeepResponseHistory)
+                if (KeepRedirectHistory)
                 {
                     responses.Add(response);
                 }
@@ -189,10 +189,10 @@ namespace Knapcode.KitchenSink.Http.Handlers
             }
 
             // save the history to the request message properties
-            if (KeepResponseHistory && response.RequestMessage != null)
+            if (KeepRedirectHistory && response.RequestMessage != null)
             {
                 responses.Add(response);
-                response.RequestMessage.Properties.Add(HistoryPropertyKey, responses);
+                response.RequestMessage.Properties.Add(RedirectHistoryKey, responses);
             }
 
             return response;

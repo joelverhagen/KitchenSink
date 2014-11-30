@@ -73,14 +73,14 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         public async Task SendAsync_WithDisabledHistory_DoesKeepHistory()
         {
             // ARRANGE
-            var client = GetHttpClient(configure: handler => handler.KeepResponseHistory = false);
+            var client = GetHttpClient(configure: handler => handler.KeepRedirectHistory = false);
             var request = GetRequest();
 
             // ACT
             HttpResponseMessage httpResponseMessage = await client.SendAsync(request);
 
             // ASSERT
-            httpResponseMessage.RequestMessage.Properties.ContainsKey(RedirectingHandler.HistoryPropertyKey).Should().BeFalse();
+            httpResponseMessage.RequestMessage.Properties.ContainsKey(RedirectingHandler.RedirectHistoryKey).Should().BeFalse();
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -118,8 +118,8 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
             HttpResponseMessage httpResponseMessage = await client.SendAsync(request);
 
             // ASSERT
-            httpResponseMessage.RequestMessage.Properties.ContainsKey(RedirectingHandler.HistoryPropertyKey).Should().BeTrue();
-            object value = httpResponseMessage.RequestMessage.Properties[RedirectingHandler.HistoryPropertyKey];
+            httpResponseMessage.RequestMessage.Properties.ContainsKey(RedirectingHandler.RedirectHistoryKey).Should().BeTrue();
+            object value = httpResponseMessage.RequestMessage.Properties[RedirectingHandler.RedirectHistoryKey];
             value.Should().BeAssignableTo<IEnumerable<HttpResponseMessage>>();
             HttpResponseMessage[] responses = ((IEnumerable<HttpResponseMessage>) value).ToArray();
             responses.Should().HaveCount(redirectCount + 1);
