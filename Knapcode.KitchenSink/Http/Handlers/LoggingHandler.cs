@@ -17,10 +17,7 @@ namespace Knapcode.KitchenSink.Http.Handlers
         public LoggingHandler(IHttpMessageStore store)
         {
             _store = store;
-            KeepSessions = true;
         }
-
-        public bool KeepSessions { get; set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
