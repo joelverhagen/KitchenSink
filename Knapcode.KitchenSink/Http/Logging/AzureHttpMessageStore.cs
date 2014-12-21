@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.GZip;
 using Knapcode.KitchenSink.Extensions;
 using Knapcode.KitchenSink.Support;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -19,14 +21,16 @@ namespace Knapcode.KitchenSink.Http.Logging
         private const string ResponseRowKeySuffix = "response";
         private readonly CloudBlobContainer _blobContainer;
         private readonly CloudTable _table;
+        private readonly bool _useCompression;
 
-        public AzureHttpMessageStore(CloudTable table, CloudBlobContainer blobContainer)
+        public AzureHttpMessageStore(CloudTable table, CloudBlobContainer blobContainer, bool useCompression)
         {
             Guard.ArgumentNotNull(table, "table");
             Guard.ArgumentNotNull(blobContainer, "blobContainer");
 
             _table = table;
             _blobContainer = blobContainer;
+            _useCompression = useCompression;
         }
 
         public async Task<StoredHttpSession> StoreRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -39,6 +43,7 @@ namespace Knapcode.KitchenSink.Http.Logging
             string rowKey = GetRequestRowKey(session);
 
             request.Content = await StoreContentAsync(rowKey, request.Content, cancellationToken);
+
             var entity = new HttpRequestMessageEntity
             {
                 PartitionKey = partitionKey,
@@ -48,10 +53,11 @@ namespace Knapcode.KitchenSink.Http.Logging
                 Version = request.Version.ToString(),
                 Headers = SerializeHeaders(request.Headers),
                 ContentHeaders = request.Content != null ? SerializeHeaders(request.Content.Headers) : null,
-                HasContent = request.Content != null
+                HasContent = request.Content != null,
+                IsContentCompressed = _useCompression
             };
             await _table.ExecuteAsync(TableOperation.Insert(entity), cancellationToken);
-            
+
             return session;
         }
 
@@ -73,7 +79,8 @@ namespace Knapcode.KitchenSink.Http.Logging
                 ReasonPhrase = response.ReasonPhrase,
                 Headers = SerializeHeaders(response.Headers),
                 ContentHeaders = response.Content != null ? SerializeHeaders(response.Content.Headers) : null,
-                HasContent = response.Content != null
+                HasContent = response.Content != null,
+                IsContentCompressed = _useCompression
             };
             await _table.ExecuteAsync(TableOperation.Insert(entity), cancellationToken);
         }
@@ -101,7 +108,7 @@ namespace Knapcode.KitchenSink.Http.Logging
             request.Headers.AddRange(DeserializeHeaders(entity.Headers));
             if (entity.HasContent)
             {
-                request.Content = await GetStoredHttpContentAsync(rowKey, DeserializeHeaders(entity.ContentHeaders), cancellationToken);
+                request.Content = await GetStoredHttpContentAsync(rowKey, DeserializeHeaders(entity.ContentHeaders), entity.IsContentCompressed, cancellationToken);
             }
 
             return request;
@@ -130,7 +137,7 @@ namespace Knapcode.KitchenSink.Http.Logging
             response.Headers.AddRange(DeserializeHeaders(entity.Headers));
             if (entity.HasContent)
             {
-                response.Content = await GetStoredHttpContentAsync(rowKey, DeserializeHeaders(entity.ContentHeaders), cancellationToken);
+                response.Content = await GetStoredHttpContentAsync(rowKey, DeserializeHeaders(entity.ContentHeaders), entity.IsContentCompressed, cancellationToken);
             }
 
             return response;
@@ -143,19 +150,56 @@ namespace Knapcode.KitchenSink.Http.Logging
             {
                 CloudBlockBlob blob = _blobContainer.GetBlockBlobReference(rowKey);
                 Stream originalStream = await originalContent.ReadAsStreamAsync();
-                await blob.UploadFromStreamAsync(originalStream, cancellationToken);
 
-                storedContent = await GetStoredHttpContentAsync(rowKey, originalContent.Headers, cancellationToken);
+                if (_useCompression)
+                {
+                    const int maximumBlockSize = 1024*1024*4; // the maximum Azure block size
+                    const int compressBufferSize = 1024*4; // default gzip buffer size
+
+                    int blockId = 0;
+                    await originalStream.FilterAsync(
+                        compressBufferSize,
+                        maximumBlockSize,
+                        s => Task.FromResult((Stream) new GZipOutputStream(s, compressBufferSize) {IsStreamOwner = false}),
+                        async (buffer, startIndex, length) =>
+                        {
+                            await blob.PutBlockAsync(
+                                GetBlockId(blockId++),
+                                new MemoryStream(buffer, startIndex, length),
+                                null,
+                                cancellationToken);
+                        });
+
+                    string[] blockIds = Enumerable.Range(0, blockId).Select(GetBlockId).ToArray(); 
+                    await blob.PutBlockListAsync(blockIds, cancellationToken);
+                }
+                else
+                {
+                    await blob.UploadFromStreamAsync(originalStream, cancellationToken);
+                }
+
+                storedContent = await GetStoredHttpContentAsync(rowKey, originalContent.Headers, _useCompression, cancellationToken);
             }
 
             return storedContent;
         }
 
-        private async Task<HttpContent> GetStoredHttpContentAsync(string rowKey, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, CancellationToken cancellationToken)
+        private static string GetBlockId(int blockId)
+        {
+            return Convert.ToBase64String(BitConverter.GetBytes(blockId));
+        }
+
+        private async Task<HttpContent> GetStoredHttpContentAsync(string rowKey, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, bool isCompressed, CancellationToken cancellationToken)
         {
             CloudBlockBlob blob = _blobContainer.GetBlockBlobReference(rowKey);
-            Stream storedStream = await blob.OpenReadAsync(cancellationToken);
-            var httpContent = new StreamContent(storedStream);
+            Stream stream = await blob.OpenReadAsync(cancellationToken);
+
+            if (isCompressed)
+            {
+                stream = new GZipInputStream(stream);
+            }
+
+            var httpContent = new StreamContent(stream);
             httpContent.Headers.AddRange(headers);
             return httpContent;
         }
@@ -210,6 +254,7 @@ namespace Knapcode.KitchenSink.Http.Logging
         {
             public string ContentHeaders { get; set; }
             public bool HasContent { get; set; }
+            public bool IsContentCompressed { get; set; }
         }
     }
 }

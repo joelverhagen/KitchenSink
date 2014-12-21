@@ -7,14 +7,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Knapcode.KitchenSink.Http.Handlers;
 using Knapcode.KitchenSink.Http.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace Knapcode.KitchenSink.Tests.Http.Handlers
+namespace Knapcode.KitchenSink.Tests.Http.Logging
 {
     [TestClass]
     public class AzureHttpMessageStoreTests
@@ -23,7 +22,9 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         public async Task StoreRequestAsync_WithContent_KeepsEquivalentContent()
         {
             // ARRANGE
-            var ts = await TestState.InitializeAsync();
+            var ts = new TestState();
+            await ts.Initialize();
+
             string expectedContent = await ts.RequestWithContent.Content.ReadAsStringAsync();
             KeyValuePair<string, string[]>[] expectedContentHeaders = CopyHeaders(ts.RequestWithContent.Content.Headers);
 
@@ -40,7 +41,9 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         public async Task StoreRequestAsync_WithAnyRequest_KeepsEquivalentProperties()
         {
             // ARRANGE
-            var ts = await TestState.InitializeAsync();
+            var ts = new TestState();
+            await ts.Initialize();
+
             HttpMethod expectedMethod = ts.RequestWithoutContent.Method;
             Uri expectedRequestUri = new UriBuilder(ts.RequestWithoutContent.RequestUri).Uri;
             var expectedVersion = new Version(ts.RequestWithoutContent.Version.ToString());
@@ -60,7 +63,8 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         public async Task StoreRequestAsync_WithAnyRequest_ReturnsAsPopulatedSession()
         {
             // ARRANGE
-            var ts = await TestState.InitializeAsync();
+            var ts = new TestState();
+            await ts.Initialize();
 
             // ACT
             StoredHttpSession session = await ts.Store.StoreRequestAsync(ts.RequestWithoutContent, CancellationToken.None);
@@ -75,10 +79,12 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         public async Task StoreResponseAsync_WithContent_KeepsEquivalentContent()
         {
             // ARRANGE
-            var ts = await TestState.InitializeAsync();
+            var ts = new TestState();
+            await ts.Initialize();
+
             string expectedContent = await ts.ResponseWithContent.Content.ReadAsStringAsync();
             KeyValuePair<string, string[]>[] expectedContentHeaders = CopyHeaders(ts.ResponseWithContent.Content.Headers);
-            
+
             // ACT
             await ts.Store.StoreResponseAsync(ts.Session, ts.ResponseWithContent, CancellationToken.None);
 
@@ -92,7 +98,9 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         public async Task StoreResponseAsync_WithAnyResponse_KeepsEquivalentProperties()
         {
             // ARRANGE
-            var ts = await TestState.InitializeAsync();
+            var ts = new TestState();
+            await ts.Initialize();
+
             var expectedVersion = new Version(ts.ResponseWithoutContent.Version.ToString());
             HttpStatusCode expectedStatusCode = ts.ResponseWithoutContent.StatusCode;
             string expectedReasonPhrase = ts.ResponseWithoutContent.ReasonPhrase;
@@ -109,14 +117,66 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         }
 
         [TestMethod, TestCategory("Integration")]
-        public async Task GetRequestAsync_WithValidSession_ReturnsCorrectRequest()
+        public async Task GetRequestAsync_WithValidSessionAndCompression_ReturnsCorrectRequest()
+        {
+            await VerifyGetRequestAsync(new TestState {UseCompression = true});
+        }
+
+        [TestMethod, TestCategory("Integration")]
+        public async Task GetRequestAsync_WithValidSessionAndNoCompression_ReturnsCorrectRequest()
+        {
+            await VerifyGetRequestAsync(new TestState {UseCompression = false});
+        }
+
+        [TestMethod, TestCategory("Integration")]
+        public async Task GetRequestAsync_WithInvalidSession_ReturnsNull()
         {
             // ARRANGE
-            var ts = await TestState.InitializeAsync();
+            var ts = new TestState();
+            await ts.Initialize();
+
+            // ACT
+            HttpRequestMessage request = await ts.Store.GetRequestAsync(ts.Session, CancellationToken.None);
+
+            // ASSERT
+            request.Should().BeNull();
+        }
+
+        [TestMethod, TestCategory("Integration")]
+        public async Task GetResponseAsync_WithValidSessionAndCompression_ReturnsCorrectResponse()
+        {
+            await VerifyGetResponseAsync(new TestState {UseCompression = true});
+        }
+
+        [TestMethod, TestCategory("Integration")]
+        public async Task GetResponseAsync_WithValidSessionAndNoCompression_ReturnsCorrectResponse()
+        {
+            await VerifyGetResponseAsync(new TestState {UseCompression = false});
+        }
+
+        [TestMethod, TestCategory("Integration")]
+        public async Task GetResponseAsync_WithInvalidSession_ReturnsNull()
+        {
+            // ARRANGE
+            var ts = new TestState();
+            await ts.Initialize();
+
+            // ACT
+            HttpResponseMessage response = await ts.Store.GetResponseAsync(ts.Session, CancellationToken.None);
+
+            // ASSERT
+            response.Should().BeNull();
+        }
+
+        private static async Task VerifyGetRequestAsync(TestState ts)
+        {
+            // ARRANGE
+            await ts.Initialize();
+
             string expectedContent = await ts.RequestWithContent.Content.ReadAsStringAsync();
             KeyValuePair<string, string[]>[] expectedHeaders = CopyHeaders(ts.RequestWithContent.Headers);
             KeyValuePair<string, string[]>[] expectedContentHeaders = CopyHeaders(ts.RequestWithContent.Content.Headers);
-            var session = await ts.Store.StoreRequestAsync(ts.RequestWithContent, CancellationToken.None);
+            StoredHttpSession session = await ts.Store.StoreRequestAsync(ts.RequestWithContent, CancellationToken.None);
 
             // ACT
             HttpRequestMessage request = await ts.Store.GetRequestAsync(session, CancellationToken.None);
@@ -127,28 +187,15 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
             request.Version.Should().Be(ts.RequestWithContent.Version);
             request.Headers.ShouldBeEquivalentTo(expectedHeaders);
             request.Content.Headers.ShouldBeEquivalentTo(expectedContentHeaders);
-            var actualContent = await request.Content.ReadAsStringAsync();
+            string actualContent = await request.Content.ReadAsStringAsync();
             actualContent.Should().Be(expectedContent);
         }
 
-        [TestMethod, TestCategory("Integration")]
-        public async Task GetRequestAsync_WithInvalidSession_ReturnsNull()
+        private static async Task VerifyGetResponseAsync(TestState ts)
         {
             // ARRANGE
-            var ts = await TestState.InitializeAsync();
+            await ts.Initialize();
 
-            // ACT
-            HttpRequestMessage request = await ts.Store.GetRequestAsync(ts.Session, CancellationToken.None);
-
-            // ASSERT
-            request.Should().BeNull();
-        }
-
-        [TestMethod, TestCategory("Integration")]
-        public async Task GetResponseAsync_WithValidSession_ReturnsCorrectResponse()
-        {
-            // ARRANGE
-            var ts = await TestState.InitializeAsync();
             string expectedContent = await ts.ResponseWithContent.Content.ReadAsStringAsync();
             KeyValuePair<string, string[]>[] expectedHeaders = CopyHeaders(ts.ResponseWithContent.Headers);
             KeyValuePair<string, string[]>[] expectedContentHeaders = CopyHeaders(ts.ResponseWithContent.Content.Headers);
@@ -163,21 +210,8 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
             response.ReasonPhrase.Should().Be(ts.ResponseWithContent.ReasonPhrase);
             response.Headers.ShouldBeEquivalentTo(expectedHeaders);
             response.Content.Headers.ShouldBeEquivalentTo(expectedContentHeaders);
-            var actualContent = await response.Content.ReadAsStringAsync();
+            string actualContent = await response.Content.ReadAsStringAsync();
             actualContent.Should().Be(expectedContent);
-        }
-
-        [TestMethod, TestCategory("Integration")]
-        public async Task GetResponseAsync_WithInvalidSession_ReturnsNull()
-        {
-            // ARRANGE
-            var ts = await TestState.InitializeAsync();
-
-            // ACT
-            HttpResponseMessage response = await ts.Store.GetResponseAsync(ts.Session, CancellationToken.None);
-
-            // ASSERT
-            response.Should().BeNull();
         }
 
         private static KeyValuePair<string, string[]>[] CopyHeaders(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
@@ -189,68 +223,60 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
 
         private class TestState
         {
-            public static async Task<TestState> InitializeAsync()
+            public TestState()
             {
+                Session = new StoredHttpSession {Id = Guid.NewGuid(), Timestamp = DateTimeOffset.UtcNow};
+
+                UseCompression = false;
+
                 CloudStorageAccount account = CloudStorageAccount.DevelopmentStorageAccount;
 
                 CloudBlobClient blobClient = account.CreateCloudBlobClient();
-                CloudBlobContainer blobContainer = blobClient.GetContainerReference("testcontainer");
-                await blobContainer.CreateIfNotExistsAsync();
+                BlobContainer = blobClient.GetContainerReference("testcontainer");
 
                 CloudTableClient tableClient = account.CreateCloudTableClient();
-                CloudTable table = tableClient.GetTableReference("testtable");
-                await table.CreateIfNotExistsAsync();
+                Table = tableClient.GetTableReference("testtable");
 
-                var requestWithContent = new HttpRequestMessage
+                RequestWithContent = new HttpRequestMessage
                 {
                     Method = HttpMethod.Post,
                     RequestUri = new Uri("http://www.example.com/"),
                     Version = new Version("1.1"),
                     Content = new StringContent("request content", Encoding.UTF8, "text/plain")
                 };
-                requestWithContent.Headers.Add("X-Request", "request header");
-                requestWithContent.Content.Headers.Add("X-Request-Content", "request content header");
+                RequestWithContent.Headers.Add("X-Request", "request header");
+                RequestWithContent.Content.Headers.Add("X-Request-Content", "request content header");
 
-                var requestWithoutContent = new HttpRequestMessage
+                RequestWithoutContent = new HttpRequestMessage
                 {
                     Method = HttpMethod.Post,
                     RequestUri = new Uri("http://www.example.com/"),
                     Version = new Version("1.1")
                 };
-                requestWithoutContent.Headers.Add("X-Request", "request header");
+                RequestWithoutContent.Headers.Add("X-Request", "request header");
 
-                var responseWithContent = new HttpResponseMessage
+                ResponseWithContent = new HttpResponseMessage
                 {
                     Version = new Version("1.1"),
-                    StatusCode = (HttpStatusCode)429,
+                    StatusCode = (HttpStatusCode) 429,
                     ReasonPhrase = "Too Many Requests",
                     Content = new StringContent("response content", Encoding.UTF8, "text/plain")
                 };
-                responseWithContent.Headers.Add("X-Response", "response header");
-                responseWithContent.Content.Headers.Add("X-Response-Content", "response content header");
+                ResponseWithContent.Headers.Add("X-Response", "response header");
+                ResponseWithContent.Content.Headers.Add("X-Response-Content", "response content header");
 
-                var responseWithoutContent = new HttpResponseMessage
+                ResponseWithoutContent = new HttpResponseMessage
                 {
                     Version = new Version("1.1"),
-                    StatusCode = (HttpStatusCode)429,
+                    StatusCode = (HttpStatusCode) 429,
                     ReasonPhrase = "Too Many Requests"
                 };
-                responseWithoutContent.Headers.Add("X-Response", "response header");
-                
-                return new TestState
-                {
-                    Session = new StoredHttpSession { Id = Guid.NewGuid(), Timestamp = DateTimeOffset.UtcNow },
-                    BlobContainer = blobContainer,
-                    RequestWithContent = requestWithContent,
-                    RequestWithoutContent = requestWithoutContent,
-                    ResponseWithContent = responseWithContent,
-                    ResponseWithoutContent = responseWithoutContent,
-                    Store = new AzureHttpMessageStore(table, blobContainer),
-                    Table = table
-                };
+                ResponseWithoutContent.Headers.Add("X-Response", "response header");
             }
 
+
             public StoredHttpSession Session { get; set; }
+            public bool UseCompression { get; set; }
             public CloudTable Table { get; set; }
             public CloudBlobContainer BlobContainer { get; set; }
             public AzureHttpMessageStore Store { get; set; }
@@ -258,6 +284,13 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
             public HttpRequestMessage RequestWithoutContent { get; set; }
             public HttpResponseMessage ResponseWithContent { get; set; }
             public HttpResponseMessage ResponseWithoutContent { get; set; }
+
+            public async Task Initialize()
+            {
+                Store = new AzureHttpMessageStore(Table, BlobContainer, UseCompression);
+                await Table.CreateIfNotExistsAsync();
+                await BlobContainer.CreateIfNotExistsAsync();
+            }
         }
     }
 }
