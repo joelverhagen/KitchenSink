@@ -81,6 +81,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Azure\JsonSerializedTableEntity.cs" />
+    <Compile Include="Extensions\ByteExtensions.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\HttpHeadersExtensions.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
@@ -90,6 +92,8 @@
     <Compile Include="Hashing\ConsistentHashingAlgorithm.cs" />
     <Compile Include="Hashing\IBucketAlgorithm.cs" />
     <Compile Include="Hashing\IBucketKeyMapper.cs" />
+    <Compile Include="Hashing\IStringBucketAlgorithm.cs" />
+    <Compile Include="Hashing\StringBucketAlgorithm.cs" />
     <Compile Include="Http\Handlers\DecompressingHandler.cs" />
     <Compile Include="Support\Base64Url.cs" />
     <Compile Include="Extensions\DateTimeOffsetExtensions.cs" />

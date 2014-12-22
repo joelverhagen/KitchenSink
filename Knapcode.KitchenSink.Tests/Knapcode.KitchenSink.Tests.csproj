@@ -96,7 +96,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Extensions\ByteExtensionsTests.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensionsTests.cs" />
+    <Compile Include="Extensions\StringExtensionsTest.cs" />
     <Compile Include="Hashing\ConsistentHashingAlgorithmTests.cs" />
     <Compile Include="Hashing\BucketKeyMapperTests.cs" />
     <Compile Include="Http\Handlers\RedirectingHandlerTests.cs" />
