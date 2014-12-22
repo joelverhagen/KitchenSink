@@ -97,6 +97,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Extensions\HttpRequestMessageExtensionsTests.cs" />
+    <Compile Include="Hashing\ConsistentHashingAlgorithmTests.cs" />
     <Compile Include="Http\Handlers\RedirectingHandlerTests.cs" />
     <Compile Include="Http\Logging\AzureHttpMessageStoreTests.cs" />
     <Compile Include="Http\Handlers\DecompressingHandlerTests.cs" />
