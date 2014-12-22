@@ -15,7 +15,7 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <VersionMajor>1</VersionMajor>
-    <VersionMinor>4</VersionMinor>
+    <VersionMinor>5</VersionMinor>
     <VersionBuild>0</VersionBuild>
     <VersionRevision>0</VersionRevision>
   </PropertyGroup>
@@ -86,8 +86,10 @@
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TaskExtensions.cs" />
+    <Compile Include="Hashing\BucketKeyMapper.cs" />
     <Compile Include="Hashing\ConsistentHashingAlgorithm.cs" />
     <Compile Include="Hashing\IBucketAlgorithm.cs" />
+    <Compile Include="Hashing\IBucketKeyMapper.cs" />
     <Compile Include="Http\Handlers\DecompressingHandler.cs" />
     <Compile Include="Support\Base64Url.cs" />
     <Compile Include="Extensions\DateTimeOffsetExtensions.cs" />
