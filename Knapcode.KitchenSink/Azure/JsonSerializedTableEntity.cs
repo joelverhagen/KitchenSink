@@ -7,6 +7,11 @@ namespace Knapcode.KitchenSink.Azure
 {
     public class JsonSerializedTableEntity<TContent> : TableEntity
     {
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.All
+        };
+
         private const string ContentKey = "Content";
 
         public TContent Content { get; set; }
@@ -21,12 +26,12 @@ namespace Knapcode.KitchenSink.Azure
                 return;
             }
 
-            Content = JsonConvert.DeserializeObject<TContent>(entityPropertyContent.StringValue);
+            Content = JsonConvert.DeserializeObject<TContent>(entityPropertyContent.StringValue, JsonSerializerSettings);
         }
 
         public override IDictionary<string, EntityProperty> WriteEntity(OperationContext operationContext)
         {
-            string jsonContent = JsonConvert.SerializeObject(Content);
+            string jsonContent = JsonConvert.SerializeObject(Content, JsonSerializerSettings);
             var entityPropertyContent = new EntityProperty(jsonContent);
             return new Dictionary<string, EntityProperty> {{ContentKey, entityPropertyContent}};
         }
