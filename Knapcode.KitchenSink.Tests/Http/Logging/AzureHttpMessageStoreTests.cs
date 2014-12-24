@@ -7,11 +7,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Knapcode.KitchenSink.Azure;
 using Knapcode.KitchenSink.Http.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
+using CloudBlobContainer = Knapcode.KitchenSink.Azure.CloudBlobContainer;
+using CloudTable = Knapcode.KitchenSink.Azure.CloudTable;
 
 namespace Knapcode.KitchenSink.Tests.Http.Logging
 {
@@ -232,10 +235,10 @@ namespace Knapcode.KitchenSink.Tests.Http.Logging
                 CloudStorageAccount account = CloudStorageAccount.DevelopmentStorageAccount;
 
                 CloudBlobClient blobClient = account.CreateCloudBlobClient();
-                BlobContainer = blobClient.GetContainerReference("testcontainer");
+                BlobContainer = new CloudBlobContainer(blobClient.GetContainerReference("testcontainer"));
 
                 CloudTableClient tableClient = account.CreateCloudTableClient();
-                Table = tableClient.GetTableReference("testtable");
+                Table = new CloudTable(tableClient.GetTableReference("testtable"));
 
                 RequestWithContent = new HttpRequestMessage
                 {
@@ -277,8 +280,8 @@ namespace Knapcode.KitchenSink.Tests.Http.Logging
 
             public StoredHttpSession Session { get; set; }
             public bool UseCompression { get; set; }
-            public CloudTable Table { get; set; }
-            public CloudBlobContainer BlobContainer { get; set; }
+            public ICloudTable Table { get; set; }
+            public ICloudBlobContainer BlobContainer { get; set; }
             public AzureHttpMessageStore Store { get; set; }
             public HttpRequestMessage RequestWithContent { get; set; }
             public HttpRequestMessage RequestWithoutContent { get; set; }
@@ -288,8 +291,8 @@ namespace Knapcode.KitchenSink.Tests.Http.Logging
             public async Task Initialize()
             {
                 Store = new AzureHttpMessageStore(Table, BlobContainer, UseCompression);
-                await Table.CreateIfNotExistsAsync();
-                await BlobContainer.CreateIfNotExistsAsync();
+                await Table.CreateIfNotExistsAsync(CancellationToken.None);
+                await BlobContainer.CreateIfNotExistsAsync(CancellationToken.None);
             }
         }
     }

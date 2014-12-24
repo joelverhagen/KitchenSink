@@ -7,9 +7,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
+using Knapcode.KitchenSink.Azure;
 using Knapcode.KitchenSink.Extensions;
 using Knapcode.KitchenSink.Support;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
@@ -19,11 +19,11 @@ namespace Knapcode.KitchenSink.Http.Logging
     {
         private const string RequestRowKeySuffix = "request";
         private const string ResponseRowKeySuffix = "response";
-        private readonly CloudBlobContainer _blobContainer;
-        private readonly CloudTable _table;
+        private readonly ICloudBlobContainer _blobContainer;
+        private readonly ICloudTable _table;
         private readonly bool _useCompression;
 
-        public AzureHttpMessageStore(CloudTable table, CloudBlobContainer blobContainer, bool useCompression)
+        public AzureHttpMessageStore(ICloudTable table, ICloudBlobContainer blobContainer, bool useCompression)
         {
             Guard.ArgumentNotNull(table, "table");
             Guard.ArgumentNotNull(blobContainer, "blobContainer");
@@ -148,7 +148,7 @@ namespace Knapcode.KitchenSink.Http.Logging
             HttpContent storedContent = null;
             if (originalContent != null)
             {
-                CloudBlockBlob blob = _blobContainer.GetBlockBlobReference(rowKey);
+                ICloudBlockBlob blob = _blobContainer.GetBlockBlobReference(rowKey);
                 Stream originalStream = await originalContent.ReadAsStreamAsync();
 
                 if (_useCompression)
@@ -191,7 +191,7 @@ namespace Knapcode.KitchenSink.Http.Logging
 
         private async Task<HttpContent> GetStoredHttpContentAsync(string rowKey, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, bool isCompressed, CancellationToken cancellationToken)
         {
-            CloudBlockBlob blob = _blobContainer.GetBlockBlobReference(rowKey);
+            ICloudBlockBlob blob = _blobContainer.GetBlockBlobReference(rowKey);
             Stream stream = await blob.OpenReadAsync(cancellationToken);
 
             if (isCompressed)

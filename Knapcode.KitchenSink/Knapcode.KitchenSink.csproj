@@ -80,6 +80,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Azure\CloudBlobContainer.cs" />
+    <Compile Include="Azure\CloudBlockBlob.cs" />
+    <Compile Include="Azure\CloudQueue.cs" />
+    <Compile Include="Azure\CloudTable.cs" />
+    <Compile Include="Azure\ICloudBlobContainer.cs" />
+    <Compile Include="Azure\ICloudBlockBlob.cs" />
+    <Compile Include="Azure\ICloudQueue.cs" />
+    <Compile Include="Azure\ICloudTable.cs" />
     <Compile Include="Azure\JsonSerializedTableEntity.cs" />
     <Compile Include="Extensions\ByteExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
