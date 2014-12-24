@@ -16,7 +16,7 @@
     <RestorePackages>true</RestorePackages>
     <VersionMajor>2</VersionMajor>
     <VersionMinor>0</VersionMinor>
-    <VersionBuild>0</VersionBuild>
+    <VersionBuild>1</VersionBuild>
     <VersionRevision>0</VersionRevision>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
