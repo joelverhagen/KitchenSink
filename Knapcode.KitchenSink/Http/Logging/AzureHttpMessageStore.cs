@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -17,6 +16,7 @@ namespace Knapcode.KitchenSink.Http.Logging
 {
     public class AzureHttpMessageStore : IHttpMessageStore
     {
+        private const int BufferSize = 4096;
         private const string RequestRowKeySuffix = "request";
         private const string ResponseRowKeySuffix = "response";
         private readonly ICloudBlobContainer _blobContainer;
@@ -151,42 +151,21 @@ namespace Knapcode.KitchenSink.Http.Logging
                 ICloudBlockBlob blob = _blobContainer.GetBlockBlobReference(rowKey);
                 Stream originalStream = await originalContent.ReadAsStreamAsync();
 
+                Stream destinationStream = await blob.OpenWriteAsync(cancellationToken);
                 if (_useCompression)
                 {
-                    const int maximumBlockSize = 1024*1024*4; // the maximum Azure block size
-                    const int compressBufferSize = 1024*4; // default gzip buffer size
-
-                    int blockId = 0;
-                    await originalStream.FilterAsync(
-                        compressBufferSize,
-                        maximumBlockSize,
-                        s => Task.FromResult((Stream) new GZipOutputStream(s, compressBufferSize) {IsStreamOwner = false}),
-                        async (buffer, startIndex, length) =>
-                        {
-                            await blob.PutBlockAsync(
-                                GetBlockId(blockId++),
-                                new MemoryStream(buffer, startIndex, length),
-                                null,
-                                cancellationToken);
-                        });
-
-                    string[] blockIds = Enumerable.Range(0, blockId).Select(GetBlockId).ToArray(); 
-                    await blob.PutBlockListAsync(blockIds, cancellationToken);
+                    destinationStream = new BufferedStream(new GZipOutputStream(destinationStream), BufferSize);
                 }
-                else
+
+                using (destinationStream)
                 {
-                    await blob.UploadFromStreamAsync(originalStream, cancellationToken);
+                    await originalStream.CopyToAsync(destinationStream, BufferSize, cancellationToken);
                 }
 
                 storedContent = await GetStoredHttpContentAsync(rowKey, originalContent.Headers, _useCompression, cancellationToken);
             }
 
             return storedContent;
-        }
-
-        private static string GetBlockId(int blockId)
-        {
-            return Convert.ToBase64String(BitConverter.GetBytes(blockId));
         }
 
         private async Task<HttpContent> GetStoredHttpContentAsync(string rowKey, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, bool isCompressed, CancellationToken cancellationToken)
