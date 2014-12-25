@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.GZip;
 using Knapcode.KitchenSink.Azure;
 using Knapcode.KitchenSink.Extensions;
 using Knapcode.KitchenSink.Support;
@@ -154,7 +154,7 @@ namespace Knapcode.KitchenSink.Http.Logging
                 Stream destinationStream = await blob.OpenWriteAsync(cancellationToken);
                 if (_useCompression)
                 {
-                    destinationStream = new BufferedStream(new GZipOutputStream(destinationStream), BufferSize);
+                    destinationStream = new GZipStream(destinationStream, CompressionLevel.Optimal);
                 }
 
                 using (destinationStream)
@@ -175,7 +175,7 @@ namespace Knapcode.KitchenSink.Http.Logging
 
             if (isCompressed)
             {
-                stream = new GZipInputStream(stream);
+                stream = new GZipStream(stream, CompressionMode.Decompress);
             }
 
             var httpContent = new StreamContent(stream);

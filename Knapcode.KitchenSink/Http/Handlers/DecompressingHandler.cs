@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Zip.Compression;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Knapcode.KitchenSink.Extensions;
 using Knapcode.KitchenSink.Support;
 
@@ -91,13 +89,13 @@ namespace Knapcode.KitchenSink.Http.Handlers
             if(contentEncoding.Equals(ContentEncodings[DecompressionMethods.GZip], StringComparison.OrdinalIgnoreCase))
             {
                 // let gzip compress the stream, and exclude the Content-Encoding header
-                decodeStream = new GZipInputStream(chainedStream);
+                decodeStream = new GZipStream(chainedStream, CompressionMode.Decompress);
             }
             else if (contentEncoding.Equals(ContentEncodings[DecompressionMethods.Deflate], StringComparison.OrdinalIgnoreCase))
             {
                 // decompress the stream as raw DEFLATE or zlib, depending on the header
                 bool noHeader = header[0] != ValidZlibCmfByte || !ValidZlibFlgBytes.Contains(header[1]);
-                decodeStream = new InflaterInputStream(chainedStream, new Inflater(noHeader));
+                decodeStream = noHeader ? new DeflateStream(chainedStream, CompressionMode.Decompress) : new DeflateStream(responseStream, CompressionMode.Decompress);
             }
 
             if (decodeStream != null)
