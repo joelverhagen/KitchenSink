@@ -13,8 +13,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
-using CloudBlobContainer = Knapcode.KitchenSink.Azure.CloudBlobContainer;
-using CloudTable = Knapcode.KitchenSink.Azure.CloudTable;
 
 namespace Knapcode.KitchenSink.Tests.Http.Logging
 {
@@ -235,10 +233,10 @@ namespace Knapcode.KitchenSink.Tests.Http.Logging
                 CloudStorageAccount account = CloudStorageAccount.DevelopmentStorageAccount;
 
                 CloudBlobClient blobClient = account.CreateCloudBlobClient();
-                BlobContainer = new CloudBlobContainer(blobClient.GetContainerReference("testcontainer"));
+                BlobContainer = new DelegatingCloudBlobContainer(blobClient.GetContainerReference("testcontainer"));
 
                 CloudTableClient tableClient = account.CreateCloudTableClient();
-                Table = new CloudTable(tableClient.GetTableReference("testtable"));
+                Table = new DelegatingCloudTable(tableClient.GetTableReference("testtable"));
 
                 RequestWithContent = new HttpRequestMessage
                 {

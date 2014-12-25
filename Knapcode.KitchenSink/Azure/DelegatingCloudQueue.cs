@@ -6,11 +6,11 @@ using Microsoft.WindowsAzure.Storage.Queue;
 
 namespace Knapcode.KitchenSink.Azure
 {
-    public class CloudQueue : ICloudQueue
+    public class DelegatingCloudQueue : ICloudQueue
     {
-        private readonly Microsoft.WindowsAzure.Storage.Queue.CloudQueue _queue;
+        private readonly CloudQueue _queue;
 
-        public CloudQueue(Microsoft.WindowsAzure.Storage.Queue.CloudQueue queue)
+        public DelegatingCloudQueue(CloudQueue queue)
         {
             _queue = queue;
         }

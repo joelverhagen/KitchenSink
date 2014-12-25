@@ -80,10 +80,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Azure\CloudBlobContainer.cs" />
-    <Compile Include="Azure\CloudBlockBlob.cs" />
-    <Compile Include="Azure\CloudQueue.cs" />
-    <Compile Include="Azure\CloudTable.cs" />
+    <Compile Include="Azure\DelegatingCloudBlobContainer.cs" />
+    <Compile Include="Azure\DelegatingCloudBlockBlob.cs" />
+    <Compile Include="Azure\DelegatingCloudQueue.cs" />
+    <Compile Include="Azure\DelegatingCloudTable.cs" />
     <Compile Include="Azure\ICloudBlobContainer.cs" />
     <Compile Include="Azure\ICloudBlockBlob.cs" />
     <Compile Include="Azure\ICloudQueue.cs" />

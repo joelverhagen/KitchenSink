@@ -7,11 +7,11 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Knapcode.KitchenSink.Azure
 {
-    public class CloudBlockBlob : ICloudBlockBlob
+    public class DelegatingCloudBlockBlob : ICloudBlockBlob
     {
-        private readonly Microsoft.WindowsAzure.Storage.Blob.CloudBlockBlob _blockBlob;
+        private readonly CloudBlockBlob _blockBlob;
 
-        public CloudBlockBlob(Microsoft.WindowsAzure.Storage.Blob.CloudBlockBlob blockBlob)
+        public DelegatingCloudBlockBlob(CloudBlockBlob blockBlob)
         {
             _blockBlob = blockBlob;
         }

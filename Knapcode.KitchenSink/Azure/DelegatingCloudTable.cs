@@ -4,11 +4,11 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Knapcode.KitchenSink.Azure
 {
-    public class CloudTable : ICloudTable
+    public class DelegatingCloudTable : ICloudTable
     {
-        private readonly Microsoft.WindowsAzure.Storage.Table.CloudTable _table;
+        private readonly CloudTable _table;
 
-        public CloudTable(Microsoft.WindowsAzure.Storage.Table.CloudTable table)
+        public DelegatingCloudTable(CloudTable table)
         {
             _table = table;
         }

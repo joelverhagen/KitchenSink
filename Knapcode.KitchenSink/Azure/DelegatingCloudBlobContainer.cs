@@ -1,13 +1,14 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Knapcode.KitchenSink.Azure
 {
-    public class CloudBlobContainer : ICloudBlobContainer
+    public class DelegatingCloudBlobContainer : ICloudBlobContainer
     {
-        private readonly Microsoft.WindowsAzure.Storage.Blob.CloudBlobContainer _blobContainer;
+        private readonly CloudBlobContainer _blobContainer;
 
-        public CloudBlobContainer(Microsoft.WindowsAzure.Storage.Blob.CloudBlobContainer blobContainer)
+        public DelegatingCloudBlobContainer(CloudBlobContainer blobContainer)
         {
             _blobContainer = blobContainer;
         }
@@ -39,7 +40,7 @@ namespace Knapcode.KitchenSink.Azure
 
         public ICloudBlockBlob GetBlockBlobReference(string blobName)
         {
-            return new CloudBlockBlob(_blobContainer.GetBlockBlobReference(blobName));
+            return new DelegatingCloudBlockBlob(_blobContainer.GetBlockBlobReference(blobName));
         }
     }
 }
