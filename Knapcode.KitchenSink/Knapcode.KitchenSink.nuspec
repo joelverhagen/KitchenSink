@@ -11,7 +11,8 @@
     <description>General purpose building blocks for your .NET projects... and the kitchen sink.</description>
     <dependencies>
       <dependency id="WindowsAzure.Storage" version="4.3.0" />
-      <dependency id="SharpZipLib" version="0.86.0" />
+      <dependency id="murmurhash" version="1.0.0" />
+      <dependency id="Ninject" version="3.2.2.0" />
     </dependencies>
   </metadata>
   <files>
