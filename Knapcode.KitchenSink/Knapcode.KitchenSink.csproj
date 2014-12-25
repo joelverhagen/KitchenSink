@@ -63,6 +63,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.7\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject">
+      <HintPath>..\packages\Ninject.3.2.2.0\lib\net45-full\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
@@ -116,6 +119,7 @@
     <Compile Include="Support\Guard.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\NinjectExtensions.cs" />
     <None Include="Knapcode.KitchenSink.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
