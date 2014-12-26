@@ -1,6 +1,9 @@
-﻿using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Knapcode.KitchenSink.Extensions;
 using Knapcode.KitchenSink.Http.Logging;
 
 namespace Knapcode.KitchenSink.Http.Handlers
@@ -22,7 +25,18 @@ namespace Knapcode.KitchenSink.Http.Handlers
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             StoredHttpSession session = await _store.StoreRequestAsync(request, cancellationToken);
-            request.Properties.Add(StoredHttpSessionKey, session);
+
+            IEnumerable<StoredHttpSession> storedHttpSessions;
+            var storedHttpSessionList = new List<StoredHttpSession>();
+            if (request.TryGetStoredHttpSessions(out storedHttpSessions))
+            {
+                storedHttpSessionList = storedHttpSessions.ToList();
+            }
+
+            storedHttpSessionList.Add(session);
+            request.Properties.Remove(StoredHttpSessionKey);
+            request.Properties.Add(StoredHttpSessionKey, storedHttpSessionList);
+                        
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
             await _store.StoreResponseAsync(session, response, cancellationToken);
             return response;

@@ -102,6 +102,7 @@
     <Compile Include="Hashing\ConsistentHashingAlgorithmTests.cs" />
     <Compile Include="Hashing\BucketKeyMapperTests.cs" />
     <Compile Include="Http\Handlers\RedirectingHandlerTests.cs" />
+    <Compile Include="Http\Handlers\LoggingHandlerTests.cs" />
     <Compile Include="Http\Logging\AzureHttpMessageStoreTests.cs" />
     <Compile Include="Http\Handlers\DecompressingHandlerTests.cs" />
     <Compile Include="Support\ChainedStreamTests.cs" />

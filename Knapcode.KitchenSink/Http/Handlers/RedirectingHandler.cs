@@ -126,6 +126,11 @@ namespace Knapcode.KitchenSink.Http.Handlers
                     await response.Content.ReadAsByteArrayAsync();
                 }
 
+                if (response.RequestMessage == null)
+                {
+                    throw new InvalidOperationException("A response recieved from the inner handler did not have a request message.");
+                }
+
                 Uri previousRequestUri = response.RequestMessage.RequestUri;
 
                 // Credit where credit is due: https://github.com/kennethreitz/requests/blob/master/requests/sessions.py

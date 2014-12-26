@@ -36,6 +36,33 @@ namespace Knapcode.KitchenSink.Tests.Http.Handlers
         }
 
         [TestMethod, TestCategory("Unit")]
+        public void SendAsync_WithResponseAndNoRequest_ThrowsException()
+        {
+            // ARRANGE
+            var client = GetHttpClient(
+                configure: handler =>
+                {
+                    var mock = new Mock<HttpMessageHandler>();
+                    mock
+                        .Protected()
+                        .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                        .Returns<HttpRequestMessage, CancellationToken>((request, token) =>
+                        {
+                            var response = new HttpResponseMessage(HttpStatusCode.Found);
+                            response.Headers.Location = new Uri("/", UriKind.Relative);
+                            return Task.FromResult(response);
+                        });
+                    handler.InnerHandler = mock.Object;
+                });
+
+            // ACT
+            Func<Task> action = () => client.SendAsync(GetRequest());
+
+            // ASSERT
+            action.ShouldThrow<InvalidOperationException>().And.Message.Should().Contain("did not have a request message");
+        }
+
+        [TestMethod, TestCategory("Unit")]
         public async Task SendAsync_WithNoLocationHeader_DoesNotRedirect()
         {
             // ARRANGE
