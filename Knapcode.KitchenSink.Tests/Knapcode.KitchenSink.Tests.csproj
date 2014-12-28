@@ -96,6 +96,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Azure\DelegatedCloudTableTests.cs" />
     <Compile Include="Extensions\ByteExtensionsTests.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensionsTests.cs" />
     <Compile Include="Extensions\StringExtensionsTest.cs" />
