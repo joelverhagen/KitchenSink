@@ -7,12 +7,17 @@ namespace Knapcode.KitchenSink.Azure
 {
     public class JsonSerializedTableEntity<TContent> : TableEntity
     {
-        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
-        {
-            TypeNameHandling = TypeNameHandling.All
-        };
-
         private const string ContentKey = "Content";
+
+        public JsonSerializedTableEntity()
+        {
+            JsonSerializerSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.All
+            };
+        }
+
+        public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
         public TContent Content { get; set; }
 
