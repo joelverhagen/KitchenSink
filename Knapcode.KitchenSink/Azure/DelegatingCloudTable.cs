@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -51,6 +52,11 @@ namespace Knapcode.KitchenSink.Azure
         public Task<bool> ExistsAsync(CancellationToken cancellationToken)
         {
             return _table.ExistsAsync(cancellationToken);
+        }
+
+        public Task<IList<TableResult>> ExecuteBatchAsync(TableBatchOperation batch, CancellationToken cancellationToken)
+        {
+            return _table.ExecuteBatchAsync(batch, cancellationToken);
         }
     }
 }

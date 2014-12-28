@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -14,5 +15,6 @@ namespace Knapcode.KitchenSink.Azure
         Task DeleteAsync(CancellationToken cancellationToken);
         Task<bool> DeleteIfExistsAsync(CancellationToken cancellationToken);
         Task<bool> ExistsAsync(CancellationToken cancellationToken);
+        Task<IList<TableResult>> ExecuteBatchAsync(TableBatchOperation batch, CancellationToken cancellationToken);
     }
 }
