@@ -15,7 +15,7 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <VersionMajor>3</VersionMajor>
-    <VersionMinor>2</VersionMinor>
+    <VersionMinor>3</VersionMinor>
     <VersionBuild>0</VersionBuild>
     <VersionRevision>0</VersionRevision>
   </PropertyGroup>
