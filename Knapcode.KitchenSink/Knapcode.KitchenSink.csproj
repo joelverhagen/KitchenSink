@@ -93,6 +93,7 @@
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\HttpHeadersExtensions.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
+    <Compile Include="Extensions\RandomExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TaskExtensions.cs" />
