@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Knapcode.KitchenSink.Azure;
 using Knapcode.KitchenSink.Http.Logging;
+using Knapcode.KitchenSink.Tests.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -233,10 +234,10 @@ namespace Knapcode.KitchenSink.Tests.Http.Logging
                 CloudStorageAccount account = CloudStorageAccount.DevelopmentStorageAccount;
 
                 CloudBlobClient blobClient = account.CreateCloudBlobClient();
-                BlobContainer = new DelegatingCloudBlobContainer(blobClient.GetContainerReference("testcontainer"));
+                BlobContainer = new DelegatingCloudBlobContainer(blobClient.GetContainerReference(Constants.TestBlobContainerName));
 
                 CloudTableClient tableClient = account.CreateCloudTableClient();
-                Table = new DelegatingCloudTable(tableClient.GetTableReference("testtable"));
+                Table = new DelegatingCloudTable(tableClient.GetTableReference(Constants.TestTableName));
 
                 RequestWithContent = new HttpRequestMessage
                 {

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Knapcode.KitchenSink.Azure;
+using Knapcode.KitchenSink.Tests.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -102,8 +103,8 @@ namespace Knapcode.KitchenSink.Tests.Azure
 
             var batch = new TableBatchOperation
             {
-                TableOperation.Insert(ts.EntityA),
-                TableOperation.Insert(ts.EntityB)
+                TableOperation.Insert(ts.EntityB),
+                TableOperation.Insert(ts.EntityA)
             };
 
             // ACT
@@ -111,6 +112,7 @@ namespace Knapcode.KitchenSink.Tests.Azure
 
             // ASSERT
             action.ShouldThrow<StorageException>();
+            await ts.VerifyDoesNotExistAsync(ts.EntityB.RowKey);
             await ts.VerifyContentAsync(ts.EntityA.RowKey, ts.ContentA);
         }
 
@@ -120,8 +122,8 @@ namespace Knapcode.KitchenSink.Tests.Azure
             {
                 CloudStorageAccount account = CloudStorageAccount.DevelopmentStorageAccount;
                 var tableClient = account.CreateCloudTableClient();
-                
-                Table = new DelegatingCloudTable(tableClient.GetTableReference("clouldtabletests"));
+
+                Table = new DelegatingCloudTable(tableClient.GetTableReference(Constants.TestTableName));
                 Table.CreateIfNotExistsAsync(CancellationToken.None).Wait();
 
                 PartitionKey = Guid.NewGuid().ToString();
@@ -155,6 +157,12 @@ namespace Knapcode.KitchenSink.Tests.Azure
                 result.HttpStatusCode.Should().Be((int) HttpStatusCode.OK);
                 result.Result.Should().BeOfType<JsonSerializedTableEntity<string>>();
                 ((JsonSerializedTableEntity<string>) result.Result).Content.Should().Be(content);
+            }
+
+            public async Task VerifyDoesNotExistAsync(string rowKey)
+            {
+                var result = await Table.ExecuteAsync(TableOperation.Retrieve<JsonSerializedTableEntity<string>>(this.PartitionKey, rowKey), CancellationToken.None);
+                result.HttpStatusCode.Should().Be((int)HttpStatusCode.NotFound);
             }
         }
     }
