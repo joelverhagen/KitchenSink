@@ -114,6 +114,11 @@
     <Compile Include="Http\Handlers\RedirectingHandler.cs" />
     <Compile Include="Http\Handlers\TracingHandler.cs" />
     <Compile Include="Support\ChainedStream.cs" />
+    <Compile Include="Support\ChainedStream.Read.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ChainedStream.Read.tt</DependentUpon>
+    </Compile>
     <Compile Include="Support\EventTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\ObservableDictionary.cs" />
@@ -124,6 +129,15 @@
     <Compile Include="Extensions\NinjectExtensions.cs" />
     <None Include="Knapcode.KitchenSink.nuspec" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Support\ChainedStream.Read.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ChainedStream.Read.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

@@ -17,15 +17,82 @@ namespace Knapcode.KitchenSink.Tests.Support
     {
         private static readonly byte[] BytesA = Encoding.ASCII.GetBytes("ABCD");
         private static readonly byte[] BytesB = Encoding.ASCII.GetBytes("1234");
+        [TestMethod, TestCategory("Unit")]
+        public void DisposeWithNoStreams()
+        {
+            // ARRANGE
+            var chain = new ChainedStream(Enumerable.Empty<Stream>());
+            Action action = () => chain.Dispose();
+
+            // ACT, ASSERT
+            action.ShouldNotThrow();
+        }
 
         [TestMethod, TestCategory("Unit")]
-        public void Constructor_WithNullStreams_Throws()
+        public void DisposeWhenNotStarted()
         {
+            // ARRANGE
+            var streamA = new DisposedStream(8);
+            var streamB = new DisposedStream(8);
+            var chain = new ChainedStream(new[] { streamA, streamB });
+
             // ACT
-            Action action = () => new ChainedStream(null);
+            chain.Dispose();
 
             // ASSERT
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("streams");
+            streamA.Disposed.Should().BeTrue();
+            streamB.Disposed.Should().BeTrue();
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void DisposeWhenOneStarted()
+        {
+            // ARRANGE
+            var streamA = new DisposedStream(8);
+            var streamB = new DisposedStream(8);
+            var chain = new ChainedStream(new[] { streamA, streamB });
+            chain.Read(new byte[4], 0, 4);
+
+            // ACT
+            chain.Dispose();
+
+            // ASSERT
+            streamA.Disposed.Should().BeTrue();
+            streamB.Disposed.Should().BeTrue();
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void DisposeWhenOneFinished()
+        {
+            // ARRANGE
+            var streamA = new DisposedStream(8);
+            var streamB = new DisposedStream(8);
+            var chain = new ChainedStream(new[] { streamA, streamB });
+            chain.Read(new byte[12], 0, 12);
+
+            // ACT
+            chain.Dispose();
+
+            // ASSERT
+            streamA.Disposed.Should().BeTrue();
+            streamB.Disposed.Should().BeTrue();
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void DisposeWhenAllFinished()
+        {
+            // ARRANGE
+            var streamA = new DisposedStream(8);
+            var streamB = new DisposedStream(8);
+            var chain = new ChainedStream(new[] { streamA, streamB });
+            chain.Read(new byte[16], 0, 16);
+
+            // ACT
+            chain.Dispose();
+
+            // ASSERT
+            streamA.Disposed.Should().BeTrue();
+            streamB.Disposed.Should().BeTrue();
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -130,7 +197,7 @@ namespace Knapcode.KitchenSink.Tests.Support
             var chain = new ChainedStream(Enumerable.Empty<Stream>());
 
             // ACT
-            int read = readFunc(chain, new byte[12], 0, 12);
+            var read = readFunc(chain, new byte[12], 0, 12);
 
             // ASSERT
             read.Should().Be(0);
@@ -142,10 +209,10 @@ namespace Knapcode.KitchenSink.Tests.Support
             const int availableBytes = 8;
             const int desiredBytes = 10;
             var buffer = new byte[12];
-            var chain = new ChainedStream(new[] {new MemoryStream(BytesA), new MemoryStream(BytesB)});
+            var chain = new ChainedStream(new[] { new MemoryStream(BytesA), new MemoryStream(BytesB) });
 
             // ACT
-            int read = readFunc(chain, buffer, 2, desiredBytes);
+            var read = readFunc(chain, buffer, 2, desiredBytes);
 
             // ASSERT
             read.Should().Be(availableBytes);
@@ -157,10 +224,10 @@ namespace Knapcode.KitchenSink.Tests.Support
             // ARRANGE
             const int desiredBytes = 6;
             var buffer = new byte[desiredBytes + 4];
-            var chain = new ChainedStream(new[] {new MemoryStream(BytesA), new MemoryStream(BytesB)});
+            var chain = new ChainedStream(new[] { new MemoryStream(BytesA), new MemoryStream(BytesB) });
 
             // ACT
-            int read = readFunc(chain, buffer, 2, desiredBytes);
+            var read = readFunc(chain, buffer, 2, desiredBytes);
 
             // ASSERT
             read.Should().Be(desiredBytes);
@@ -172,10 +239,10 @@ namespace Knapcode.KitchenSink.Tests.Support
             // ARRANGE
             const int availableBytes = 8;
             var buffer = new byte[availableBytes + 4];
-            var chain = new ChainedStream(new[] {new MemoryStream(BytesA), new MemoryStream(BytesB)});
+            var chain = new ChainedStream(new[] { new MemoryStream(BytesA), new MemoryStream(BytesB) });
 
             // ACT
-            int read = readFunc(chain, buffer, 2, availableBytes);
+            var read = readFunc(chain, buffer, 2, availableBytes);
 
             // ASSERT
             read.Should().Be(availableBytes);
@@ -189,8 +256,8 @@ namespace Knapcode.KitchenSink.Tests.Support
             var chain = new ChainedStream(new[] { new MemoryStream(BytesA), new MemoryStream(BytesB) });
 
             // ACT
-            int readA = readFunc(chain, buffer, 2, 6);
-            int readB = readFunc(chain, buffer, 8, 4);
+            var readA = readFunc(chain, buffer, 2, 6);
+            var readB = readFunc(chain, buffer, 8, 4);
 
             // ASSERT
             readA.Should().Be(6);
@@ -204,17 +271,17 @@ namespace Knapcode.KitchenSink.Tests.Support
             const int availableBytes = 16;
             const int desiredBytes = 20;
             var buffer = new byte[desiredBytes];
-            var chain = new ChainedStream(new[] {GetVariableReadStreamMock(8, 97).Object, GetVariableReadStreamMock(8, 98).Object});
+            var chain = new ChainedStream(new[] { GetVariableReadStreamMock(8, 97).Object, GetVariableReadStreamMock(8, 98).Object });
 
             // ACT
-            int read = readFunc(chain, buffer, 2, desiredBytes);
+            var read = readFunc(chain, buffer, 2, desiredBytes);
 
             // ASSERT
             read.Should().Be(availableBytes);
             buffer.ShouldBeEquivalentTo(Enumerable.Empty<byte>()
                 .Concat(new byte[2])
-                .Concat(Enumerable.Repeat((byte) 97, 8))
-                .Concat(Enumerable.Repeat((byte) 98, 8))
+                .Concat(Enumerable.Repeat((byte)97, 8))
+                .Concat(Enumerable.Repeat((byte)98, 8))
                 .Concat(new byte[2]));
         }
 
@@ -223,7 +290,7 @@ namespace Knapcode.KitchenSink.Tests.Support
             // ARRANGE
             var streamA = new DisposedStream(8);
             var streamB = new DisposedStream(8);
-            var chain = new ChainedStream(new[] {streamA, streamB});
+            var chain = new ChainedStream(new[] { streamA, streamB });
 
             // ACT
             readFunc(chain, new byte[12], 0, 12);
@@ -238,7 +305,7 @@ namespace Knapcode.KitchenSink.Tests.Support
             // ARRANGE
             var streamA = new DisposedStream(8);
             var streamB = new DisposedStream(8);
-            var chain = new ChainedStream(new[] {streamA, streamB}, false);
+            var chain = new ChainedStream(new[] { streamA, streamB }, false);
 
             // ACT
             readFunc(chain, new byte[12], 0, 12);
@@ -250,8 +317,9 @@ namespace Knapcode.KitchenSink.Tests.Support
 
         private static Mock<Stream> GetVariableReadStreamMock(int size, byte b)
         {
-            int remaining = size;
+            var remaining = size;
 
+            var random = new Random();
             var mock = new Mock<Stream>();
 
             mock
@@ -265,8 +333,8 @@ namespace Knapcode.KitchenSink.Tests.Support
 
                     count = Math.Min(remaining, count);
 
-                    int read = RandomProvider.GetThreadRandom().Next(1, count + 1);
-                    for (int i = 0; i < read; i++)
+                    var read = random.Next(1, count + 1);
+                    for (var i = 0; i < read; i++)
                     {
                         buffer[offset + i] = b;
                     }
