@@ -9,6 +9,7 @@ using FluentAssertions;
 using Knapcode.KitchenSink.Extensions;
 using Knapcode.KitchenSink.Http.Handlers;
 using Knapcode.KitchenSink.Http.Logging;
+using Knapcode.SocketToMe.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;

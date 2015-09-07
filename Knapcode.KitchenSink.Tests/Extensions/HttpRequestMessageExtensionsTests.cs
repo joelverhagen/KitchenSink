@@ -15,24 +15,6 @@ namespace Knapcode.KitchenSink.Tests.Extensions
         private delegate bool TryGetHttpRequestMessageProperty<T>(HttpRequestMessage request, out T value);
 
         [TestMethod, TestCategory("Unit")]
-        public void TryGetRedirectHistory_WithValue_ReturnsTrue()
-        {
-            TryGetHttpRequestMessageProperty_WithValue_ReturnsTrue(HttpRequestMessageExtensions.TryGetRedirectHistory, RedirectingHandler.RedirectHistoryKey, Enumerable.Empty<HttpResponseMessage>());
-        }
-
-        [TestMethod, TestCategory("Unit")]
-        public void TryGetRedirectHistory_WithWrongType_ReturnsFalse()
-        {
-            TryGetHttpRequestMessageProperty_WithWrongType_ReturnsFalse<IEnumerable<HttpResponseMessage>>(HttpRequestMessageExtensions.TryGetRedirectHistory, RedirectingHandler.RedirectHistoryKey);
-        }
-
-        [TestMethod, TestCategory("Unit")]
-        public void TryGetRedirectHistory_WithNoValue_ReturnsFalse()
-        {
-            TryGetHttpRequestMessageProperty_WithNoValue_ReturnsFalse<IEnumerable<HttpResponseMessage>>(HttpRequestMessageExtensions.TryGetRedirectHistory);
-        }
-
-        [TestMethod, TestCategory("Unit")]
         public void TryGetStoredHttpSession_WithValue_ReturnsTrue()
         {
             var session = new StoredHttpSession();

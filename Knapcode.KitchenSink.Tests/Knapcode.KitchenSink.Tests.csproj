@@ -47,6 +47,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
+    <Reference Include="Knapcode.SocketToMe, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Knapcode.SocketToMe.0.3.0\lib\net45\Knapcode.SocketToMe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Data.Edm.5.6.3\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -103,10 +107,8 @@
     <Compile Include="Extensions\RandomExtensionsTests.cs" />
     <Compile Include="Hashing\ConsistentHashingAlgorithmTests.cs" />
     <Compile Include="Hashing\BucketKeyMapperTests.cs" />
-    <Compile Include="Http\Handlers\RedirectingHandlerTests.cs" />
     <Compile Include="Http\Handlers\LoggingHandlerTests.cs" />
     <Compile Include="Http\Logging\AzureHttpMessageStoreTests.cs" />
-    <Compile Include="Http\Handlers\DecompressingHandlerTests.cs" />
     <Compile Include="Support\ChainedStreamTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\Base64UrlTests.cs" />
@@ -125,6 +127,9 @@
       <Project>{be83be94-a462-4e22-80b0-ff823c6b30bb}</Project>
       <Name>Knapcode.KitchenSink</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

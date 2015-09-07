@@ -104,14 +104,12 @@
     <Compile Include="Hashing\IBucketKeyMapper.cs" />
     <Compile Include="Hashing\IStringBucketAlgorithm.cs" />
     <Compile Include="Hashing\StringBucketAlgorithm.cs" />
-    <Compile Include="Http\Handlers\DecompressingHandler.cs" />
     <Compile Include="Support\Base64Url.cs" />
     <Compile Include="Extensions\DateTimeOffsetExtensions.cs" />
     <Compile Include="Http\Logging\AzureHttpMessageStore.cs" />
     <Compile Include="Http\Logging\StoredHttpSession.cs" />
     <Compile Include="Http\Logging\IHttpMessageStore.cs" />
     <Compile Include="Http\Handlers\LoggingHandler.cs" />
-    <Compile Include="Http\Handlers\RedirectingHandler.cs" />
     <Compile Include="Http\Handlers\TracingHandler.cs" />
     <Compile Include="Support\ChainedStream.cs" />
     <Compile Include="Support\ChainedStream.Read.cs">
